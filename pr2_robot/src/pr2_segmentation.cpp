@@ -25,8 +25,8 @@ Author: Sean Cassero
 #include <pcl/filters/extract_indices.h>
 #include <pcl/kdtree/kdtree.h>
 #include <pcl/segmentation/extract_clusters.h>
-#include <obj_recognition/SegmentedClustersArray.h>
-#include <obj_recognition/ClusterData.h>
+#include <pr2_robot/SegmentedClustersArray.h>
+
 
 
 class segmentation {
@@ -36,8 +36,8 @@ public:
   explicit segmentation(ros::NodeHandle nh) : m_nh(nh)  {
 
     // define the subscriber and publisher
-    m_sub = m_nh.subscribe ("/obj_recognition/point_cloud", 1, &segmentation::cloud_cb, this);
-    m_clusterPub = m_nh.advertise<obj_recognition::SegmentedClustersArray> ("obj_recognition/pcl_clusters",1);
+    m_sub = m_nh.subscribe ("/pr2_robot/point_cloud", 1, &segmentation::cloud_cb, this);
+    m_clusterPub = m_nh.advertise<pr2_robot::SegmentedClustersArray> ("pr2_robot/pcl_clusters",1);
 
   }
 
@@ -151,7 +151,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   ec.extract (cluster_indices);
 
   // declare an instance of the SegmentedClustersArray message
-  obj_recognition::SegmentedClustersArray CloudClusters;
+  pr2_robot::SegmentedClustersArray CloudClusters;
 
   // declare the output variable instances
   sensor_msgs::PointCloud2 output;

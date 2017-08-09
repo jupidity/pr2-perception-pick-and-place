@@ -7,16 +7,16 @@ from sklearn.preprocessing import LabelEncoder
 import pickle
 
 
-from obj_recognition.features import compute_color_histograms
-from obj_recognition.features import compute_normal_histograms
+from pr2_robot.features import compute_color_histograms
+from pr2_robot.features import compute_normal_histograms
 from visualization_msgs.msg import Marker
-from obj_recognition.srv import GetNormals
+from pr2_robot.srv import GetNormals
 
-from obj_recognition.marker_tools import *
-from obj_recognition.msg import DetectedObjectsArray
-from obj_recognition.msg import DetectedObject
-from obj_recognition.msg import SegmentedClustersArray
-from obj_recognition.pcl_helper import *
+from pr2_robot.marker_tools import *
+from pr2_robot.msg import DetectedObjectsArray
+from pr2_robot.msg import DetectedObject
+from pr2_robot.msg import SegmentedClustersArray
+from pr2_robot.pcl_helper import *
 
 
 def get_normals(cloud):
@@ -67,10 +67,10 @@ def pcl_callback(pcl_msg):
 
 if __name__ == '__main__':
 
-    rospy.init_node('obj_recognition_node')
+    rospy.init_node('label_node')
 
     # Create Subscribers
-    sub = rospy.Subscriber('obj_recognition/pcl_clusters' , SegmentedClustersArray, pcl_callback )
+    sub = rospy.Subscriber('pr2_robot/pcl_clusters' , SegmentedClustersArray, pcl_callback )
     detected_objects_pub = rospy.Publisher('/detected_objects', DetectedObjectsArray , queue_size=1)
     object_markers_pub = rospy.Publisher('/object_markers', Marker , queue_size=1)
 

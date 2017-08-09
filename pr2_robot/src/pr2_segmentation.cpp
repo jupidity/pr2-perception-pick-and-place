@@ -26,6 +26,7 @@ Author: Sean Cassero
 #include <pcl/kdtree/kdtree.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pr2_robot/SegmentedClustersArray.h>
+#include <pcl/filters/statistical_outlier_removal.h>
 
 
 
@@ -71,10 +72,10 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
 
   // Perform voxel grid downsampling filtering
-  pcl::VoxelGrid<pcl::PCLPointCloud2> sor;
-  sor.setInputCloud (cloudPtr);
-  sor.setLeafSize (0.01, 0.01, 0.01);
-  sor.filter (*cloudFilteredPtr);
+  pcl::VoxelGrid<pcl::PCLPointCloud2> voxelFilter;
+  voxelFilter.setInputCloud (cloudPtr);
+  voxelFilter.setLeafSize (0.01, 0.01, 0.01);
+  voxelFilter.filter (*cloudFilteredPtr);
 
 
   pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud = new pcl::PointCloud<pcl::PointXYZRGB>;
@@ -98,6 +99,17 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   //pass.setFilterLimitsNegative (true);
   pass.filter (*xyzCloudPtrFiltered);
 
+  // create a pcl object to hold the outlier filtered results
+  pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud_outlier_filtered = new pcl::PointCloud<pcl::PointXYZRGB>;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrOutlierFiltered (xyz_cloud_outlier_filtered);
+
+
+  // Create the statistical outlier filter filtering object
+  pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> outlierFilter;
+  outlierFilter.setInputCloud (xyzCloudPtrFiltered);
+  outlierFilter.setMeanK (50);
+  outlierFilter.setStddevMulThresh (1.0);
+  outlierFilter.filter (*xyzCloudPtrOutlierFiltered);
 
 
   // create a pcl object to hold the ransac filtered results
@@ -117,7 +129,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   seg1.setMethodType (pcl::SAC_RANSAC);
   seg1.setDistanceThreshold (0.04);
 
-  seg1.setInputCloud (xyzCloudPtrFiltered);
+  seg1.setInputCloud (xyzCloudPtrOutlierFiltered);
   seg1.segment (*inliers, *coefficients);
 
 

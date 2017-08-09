@@ -34,7 +34,7 @@ find_package(Boost REQUIRED)
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+ catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -61,17 +61,20 @@ find_package(Boost REQUIRED)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
+ add_message_files(
+   FILES
+   DetectedObject.msg
+	 DetectedObjectsArray.msg
+	 SegmentedClustersArray.msg
 #   Message2.msg
-# )
+ )
 
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
   PickPlace.srv
 	Grasp.srv
+	GetNormals.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -86,6 +89,7 @@ generate_messages(
  DEPENDENCIES
  std_msgs
  geometry_msgs
+ sensor_msgs
 )
 
 ################################################
@@ -148,6 +152,7 @@ include_directories(include ${Boost_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${EIGEN
 add_executable(pr2_motion src/pr2_motion.cpp)
 add_executable(pr2_pick_place_server src/pr2_pick_place_server.cpp)
 add_executable(pr2_cloud_transformer src/pr2_cloud_transformer.cpp)
+add_executable(pr2_segmentation src/pr2_segmentation.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -160,11 +165,12 @@ add_executable(pr2_cloud_transformer src/pr2_cloud_transformer.cpp)
 add_dependencies(pr2_motion ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(pr2_pick_place_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(pr2_cloud_transformer ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+add_dependencies(pr2_segmentation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
 target_link_libraries(pr2_motion ${catkin_LIBRARIES})
 target_link_libraries(pr2_pick_place_server ${catkin_LIBRARIES})
 target_link_libraries(pr2_cloud_transformer ${catkin_LIBRARIES})
+target_link_libraries(pr2_segmentation ${catkin_LIBRARIES})
 
 #############
 ## Install ##

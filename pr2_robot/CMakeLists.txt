@@ -153,6 +153,7 @@ add_executable(pr2_motion src/pr2_motion.cpp)
 add_executable(pr2_pick_place_server src/pr2_pick_place_server.cpp)
 add_executable(pr2_cloud_transformer src/pr2_cloud_transformer.cpp)
 add_executable(pr2_segmentation src/pr2_segmentation.cpp)
+add_executable(pr2_feature_extractor src/feature_extractor.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -166,11 +167,14 @@ add_dependencies(pr2_motion ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTE
 add_dependencies(pr2_pick_place_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_generate_messages_cpp)
 add_dependencies(pr2_cloud_transformer ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(pr2_segmentation ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(pr2_feature_extractor ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
 target_link_libraries(pr2_motion ${catkin_LIBRARIES})
 target_link_libraries(pr2_pick_place_server ${catkin_LIBRARIES})
 target_link_libraries(pr2_cloud_transformer ${catkin_LIBRARIES})
 target_link_libraries(pr2_segmentation ${catkin_LIBRARIES})
+target_link_libraries(pr2_feature_extractor ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##

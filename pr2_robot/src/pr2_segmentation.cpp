@@ -48,7 +48,6 @@ public:
     m_passthrough2Pub = m_nh.advertise<sensor_msgs::PointCloud2> ("pr2_robot/pcl_passthrough2",1);
     #endif
 
-
   }
 
 private:
@@ -58,13 +57,27 @@ private:
   ros::Subscriber m_sub;
   ros::Publisher m_clusterPub;
 
+  // define filter function parameters
+  float m_y_passthrough_min;
+  float m_y_passthrough_max;
+  float m_z_passthrough_min;
+  float m_z_passthrough_max;
+  float m_voxel_leaf;
+  float m_outlier_stdev;
+  float m_outlier_meanK;
+  float m_ransac_dist_thresh;
+  float m_euclidean_cluster_tolerance;
+  float m_euclidean_min_cluster_size;
+  float m_euclidean_max_cluster_size;
+
+
   #ifdef DEBUG // add the extra publishers if in debug mode
 
   ros::Publisher m_voxelPub;
   ros::Publisher m_outliersPub;
-  ros::Publisher m_passthroughPub;
+  ros::Publisher m_passthroughZPub;
   ros::Publisher m_ransacPub;
-  ros::Publisher m_passthrough2Pub;
+  ros::Publisher m_passthroughYPub;
 
   #endif
 

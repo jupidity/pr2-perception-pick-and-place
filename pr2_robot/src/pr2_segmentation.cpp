@@ -34,7 +34,7 @@ class segmentation {
 
 public:
 
-  explicit segmentation(ros::NodeHandle nh) : m_nh(nh)  {
+  explicit segmentation(ros::NodeHandle nh) : m_nh(nh)  { // constructor for the segmentation class
 
     // define the subscriber and publisher
     m_sub = m_nh.subscribe ("/pr2/world/points", 1, &segmentation::cloud_cb, this);
@@ -48,7 +48,10 @@ public:
     m_passthrough2Pub = m_nh.advertise<sensor_msgs::PointCloud2> ("pr2_robot/pcl_passthrough2",1);
     #endif
 
-  }
+  } // end constructor declaration
+
+  void voxel_filter(); // voxel filter declaration
+  void passthrough_filter
 
 private:
 
@@ -70,6 +73,29 @@ private:
   float m_euclidean_min_cluster_size;
   float m_euclidean_max_cluster_size;
 
+  // declare the filter instances, these are initialized with the contructor
+  pcl::VoxelGrid<pcl::PCLPointCloud2> m_voxelFilter;
+  pcl::PassThrough<pcl::PointXYZRGB> m_passY;
+  pcl::PassThrough<pcl::PointXYZRGB> m_passZ;
+  pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> m_outlierFilter;
+  pcl::SACSegmentation<pcl::PointXYZRGB> m_ransac_segmentation; // segmentation class for RANSAC
+  pcl::search::KdTree<pcl::PointXYZRGB>::Ptr m_tree; //Ptr to kd tree for Euclidean segmentaiton
+
+
+  // declare the pcl and ROS point clouds used in filtering functions
+  pcl::PCLPointCloud2* m_incoming_cloud; // holds the incoming cloud in pcl::PointCloud2 format
+  pcl::PCLPointCloud2ConstPtr m_incomingCloudPtr; // shared ptr to the incoming cloud in pcl::PointCloud2 format
+  pcl::PointCloud<pcl::PointXYZRGB> *m_xyz_cloud; // cloud to hold point cloud in pcl::PointCloud<Pcl::PointXYZRGB> format
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr m_xyzCloudPtr;
+  pcl::ModelCoefficients::Ptr m_coefficients; // Ptr to the coefficients for the ransac filtering
+  pcl::PointIndices::Ptr m_inliers; // Ptr to PointIndices object to hold results from RANSAC filtering
+  std::vector<pcl::PointIndices> m_cluster_indices; // indices for the
+  pcl::ExtractIndices<pcl::PointXYZRGB> m_extract; // extraction object for RANSAC
+  pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> m_ec; // object to extract indices from point cloud
+  sensor_msgs::PointCloud2 m_output; // holds the ouput cloud in sensor_msgs::PointCloud2 format
+  pcl::PCLPointCloud2 m_outputPCL; // holds the output cloud in pcl::PointCloud2 format
+
+  pr2_robot::SegmentedClustersArray m_CloudClusters; // the output message
 
   #ifdef DEBUG // add the extra publishers if in debug mode
 
@@ -98,9 +124,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   pcl::PCLPointCloud2* cloud_filtered = new pcl::PCLPointCloud2;
   pcl::PCLPointCloud2Ptr cloudFilteredPtr (cloud_filtered);
 
-  // declare the output variable instances (defined here for consistancy w/ DEBUG mode)
-  sensor_msgs::PointCloud2 output;
-  pcl::PCLPointCloud2 outputPCL;
+
 
   // Convert to PCL data type
   pcl_conversions::toPCL(*cloud_msg, *cloud);

@@ -20,7 +20,7 @@ from pr2_robot.pcl_helper import *
 
 
 def get_normals(cloud):
-    get_normals_prox = rospy.ServiceProxy('/feature_extractor/get_normals', GetNormals)
+    get_normals_prox = rospy.ServiceProxy('/pr2_feature_extractor/get_normals', GetNormals)
     return get_normals_prox(cloud).cluster
 
 # Callback function for your subscriber to the cluster array

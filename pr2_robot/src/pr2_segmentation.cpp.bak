@@ -53,22 +53,22 @@ public:
 
 private:
 
-  ros::NodeHandle m_nh;
-  ros::Publisher m_pub;
-  ros::Subscriber m_sub;
-  ros::Publisher m_clusterPub;
+ros::NodeHandle m_nh;
+ros::Publisher m_pub;
+ros::Subscriber m_sub;
+ros::Publisher m_clusterPub;
 
-  #ifdef DEBUG // add the extra publishers if in debug mode
+#ifdef DEBUG // add the extra publishers if in debug mode
 
-  ros::Publisher m_voxelPub;
-  ros::Publisher m_outliersPub;
-  ros::Publisher m_passthroughPub;
-  ros::Publisher m_ransacPub;
-  ros::Publisher m_passthrough2Pub;
+ros::Publisher m_voxelPub;
+ros::Publisher m_outliersPub;
+ros::Publisher m_passthroughPub;
+ros::Publisher m_ransacPub;
+ros::Publisher m_passthrough2Pub;
 
-  #endif
+#endif
 
-  void cloud_cb(const sensor_msgs::PointCloud2ConstPtr& cloud_msg);
+void cloud_cb(const sensor_msgs::PointCloud2ConstPtr& cloud_msg);
 
 }; // end class definition
 
@@ -140,9 +140,9 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   pcl::PassThrough<pcl::PointXYZRGB> pass2;
   pass2.setInputCloud (xyzCloudPtrFiltered);
   pass2.setFilterFieldName ("z");
-  pass2.setFilterLimits (.5, 1.1);
+  pass2.setFilterLimits (.5, 1.15);
   //pass.setFilterLimitsNegative (true);
-  pass2.filter (*xyzCloudPtrFiltered2);
+  pass.filter (*xyzCloudPtrFiltered2);
 
   #ifdef DEBUG // publish the point cloud to RViz if in debug
   pcl::toPCLPointCloud2( *xyzCloudPtrFiltered2 ,outputPCL);
@@ -160,7 +160,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> outlierFilter;
   outlierFilter.setInputCloud (xyzCloudPtrFiltered2);
   outlierFilter.setMeanK (50);
-  outlierFilter.setStddevMulThresh (.0075);
+  outlierFilter.setStddevMulThresh (.08);
   outlierFilter.filter (*xyzCloudPtrOutlierFiltered);
 
   #ifdef DEBUG // publish the point cloud to RViz if in debug
@@ -184,7 +184,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   // Mandatory
   seg1.setModelType (pcl::SACMODEL_PLANE);
   seg1.setMethodType (pcl::SAC_RANSAC);
-  seg1.setDistanceThreshold (0.016);
+  seg1.setDistanceThreshold (0.04);
 
   seg1.setInputCloud (xyzCloudPtrOutlierFiltered);
   seg1.segment (*inliers, *coefficients);
@@ -245,7 +245,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
     {
       clusterPtr->points.push_back(xyzCloudPtrRansacFiltered->points[*pit]);
 
-    }
+        }
 
 
     // convert to pcl::PCLPointCloud2

@@ -1,0 +1,12 @@
+<launch>
+
+  <rosparam command="load" file="$(find pr2_robot)/config/filter_parameters.yaml"/>
+
+  <node name="pr2_segmentation" pkg="pr2_robot" type="pr2_segmentation"
+    respawn="false" output="screen">
+  </node>
+
+  <!--node name="marker_generation" pkg="pr2_robot" type="marker_generation.py"
+    respawn="false" output="screen"/-->
+
+</launch>

@@ -6,7 +6,7 @@
 
   <rosparam command="load" file="$(find pr2_moveit)/config/grasp.yaml"/>
   <rosparam command="load" file="$(find pr2_robot)/config/dropbox.yaml"/>
-  <rosparam command="load" file="$(find pr2_robot)/config/filter_parameters.yaml"/>
+
 
   <!--Launch a gazebo world-->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -14,8 +14,8 @@
     <arg name="world_name" value="$(find pr2_robot)/worlds/test1.world"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="paused" value="false"/>
-    <arg name="gui" value="true"/>
-    <arg name="headless" value="false"/>
+    <arg name="gui" value="false"/>
+    <arg name="headless" value="true"/>
     <arg name="debug" value="false"/>
   </include>
 

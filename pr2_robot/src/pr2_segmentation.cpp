@@ -78,16 +78,6 @@ private:
   ros::Subscriber m_sub;
   ros::Publisher m_clusterPub;
 
-  // declare the PCL data objects
-  pcl::PCLPointCloud2* cloud; // // pcl object to hold the conversion from sensor_msgs::PointCloud2 data type
-  pcl::PCLPointCloud2* cloud_filtered; // pcl object to hold the voxel filtered cloud
-  pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud; // pcl object to hold the conversion from pcl::PointCloud2 data type
-  sensor_msgs::PointCloud2 output; // output sensor_msgs
-  pcl::PCLPointCloud2 outputPCL;  // output pcl
-  pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud_filteredY; // pcl object to hold the passthrough filtered data in the y direction
-  pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud_ransac_filtered; // pcl object to hold the ransac filtered results
-  pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud_filteredZ; // pcl object to hold the passthrough filtered data in the y direction
-  pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud_outlier_filtered; //pcl object to hold the outlier filtered results
 
   // Declare the filters
   pcl::VoxelGrid<pcl::PCLPointCloud2> voxelFilter; // voxel filter
@@ -99,16 +89,9 @@ private:
   std::vector<pcl::PointIndices> cluster_indices; // vector containing the segmented clusters
   pcl::EuclideanClusterExtraction<pcl::PointXYZRGB> ec; // extraction object for the clusters
 
-  // declare the shared pointers to the point cloud data
-  /*
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrOutlierFiltered;
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrRansacFiltered;
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrFilteredZ;
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrFilteredY;
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtr;
-  pcl::PCLPointCloud2Ptr cloudFilteredPtr;
-  pcl::PCLPointCloud2ConstPtr cloudPtr;
-*/
+  //declare the output containers
+  sensor_msgs::PointCloud2 output; // output sensor_msgs
+  pcl::PCLPointCloud2 outputPCL;  // output pcl
 
   #ifdef DEBUG // add the extra publishers if in debug mode
   ros::Publisher m_voxelPub;
@@ -128,21 +111,14 @@ private:
 void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 {
 
-  // allocate memory
-  cloud = new pcl::PCLPointCloud2;
-  cloud_filtered = new pcl::PCLPointCloud2;
-  xyz_cloud = new pcl::PointCloud<pcl::PointXYZRGB>;
-  xyz_cloud_filteredY = new pcl::PointCloud<pcl::PointXYZRGB>;
-  xyz_cloud_filteredZ = new pcl::PointCloud<pcl::PointXYZRGB>;
-  xyz_cloud_outlier_filtered = new pcl::PointCloud<pcl::PointXYZRGB>;
-  xyz_cloud_ransac_filtered = new pcl::PointCloud<pcl::PointXYZRGB>;
-
+  // get pointers to new pcl objects
+  pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; // // pcl object to hold the conversion from sensor_msgs::PointCloud2 data type
+  pcl::PCLPointCloud2* cloud_filtered = new pcl::PCLPointCloud2; // pcl object to hold the voxel filtered cloud
+  pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud = new pcl::PointCloud<pcl::PointXYZRGB>; // pcl object to hold the conversion from pcl::PointCloud2 data type
+  pcl::PointCloud<pcl::PointXYZRGB> *xyz_cloud_filtered = new pcl::PointCloud<pcl::PointXYZRGB>; // pcl object to hold the passthrough filtered data in the y direction
 
   // get the shared pointers
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrOutlierFiltered (xyz_cloud_outlier_filtered);
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrRansacFiltered(xyz_cloud_ransac_filtered);
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrFilteredZ (xyz_cloud_filteredZ);
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrFilteredY (xyz_cloud_filteredY);
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtrFiltered (xyz_cloud_filtered);
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtr (xyz_cloud);
   pcl::PCLPointCloud2Ptr cloudFilteredPtr (cloud_filtered);
   pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
@@ -166,30 +142,30 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
   //perform passthrough filtering in the y dir
   passY.setInputCloud (xyzCloudPtr);
-  passY.filter (*xyzCloudPtrFilteredY);
+  passY.filter (*xyzCloudPtrFiltered);
 
   #ifdef DEBUG // publish the point cloud to RViz if in debug
-  pcl::toPCLPointCloud2( *xyzCloudPtrFilteredY ,outputPCL);
+  pcl::toPCLPointCloud2( *xyzCloudPtrFiltered ,outputPCL);
   pcl_conversions::fromPCL(outputPCL, output);
   m_passthroughPub.publish(output);
   #endif
 
   // passthrough filter in the z dir
-  passZ.setInputCloud (xyzCloudPtrFilteredY);
-  passZ.filter (*xyzCloudPtrFilteredZ);
+  passZ.setInputCloud (xyzCloudPtrFiltered);
+  passZ.filter (*xyzCloudPtrFiltered);
 
   #ifdef DEBUG // publish the point cloud to RViz if in debug
-  pcl::toPCLPointCloud2( *xyzCloudPtrFilteredZ ,outputPCL);
+  pcl::toPCLPointCloud2( *xyzCloudPtrFiltered ,outputPCL);
   pcl_conversions::fromPCL(outputPCL, output);
   m_passthrough2Pub.publish(output);
   #endif
 
   // perform outlier filtering
-  outlierFilter.setInputCloud (xyzCloudPtrFilteredZ);
-  outlierFilter.filter (*xyzCloudPtrOutlierFiltered);
+  outlierFilter.setInputCloud (xyzCloudPtrFiltered);
+  outlierFilter.filter (*xyzCloudPtrFiltered);
 
   #ifdef DEBUG // publish the point cloud to RViz if in debug
-  pcl::toPCLPointCloud2( *xyzCloudPtrOutlierFiltered ,outputPCL);
+  pcl::toPCLPointCloud2( *xyzCloudPtrFiltered ,outputPCL);
   pcl_conversions::fromPCL(outputPCL, output);
   m_outliersPub.publish(output);
   #endif
@@ -198,15 +174,15 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   // perform RANSAC segmentation and extract outliers
   pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
   pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
-  ransacSegmentation.setInputCloud (xyzCloudPtrOutlierFiltered);
+  ransacSegmentation.setInputCloud (xyzCloudPtrFiltered);
   ransacSegmentation.segment (*inliers, *coefficients);
-  extract.setInputCloud (xyzCloudPtrOutlierFiltered);
+  extract.setInputCloud (xyzCloudPtrFiltered);
   extract.setIndices (inliers);
-  extract.filter (*xyzCloudPtrRansacFiltered);
+  extract.filter (*xyzCloudPtrFiltered);
 
 
   #ifdef DEBUG // publish the point cloud to RViz if in debug
-  pcl::toPCLPointCloud2( *xyzCloudPtrRansacFiltered ,outputPCL);
+  pcl::toPCLPointCloud2( *xyzCloudPtrFiltered ,outputPCL);
   pcl_conversions::fromPCL(outputPCL, output);
   m_ransacPub.publish(output);
   #endif
@@ -216,8 +192,8 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
   // Create the KdTree object for the search method of the extraction
   pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
-  tree->setInputCloud (xyzCloudPtrRansacFiltered);
-  ec.setInputCloud (xyzCloudPtrRansacFiltered);
+  tree->setInputCloud (xyzCloudPtrFiltered);
+  ec.setInputCloud (xyzCloudPtrFiltered);
   ec.extract (cluster_indices);
 
   // declare an instance of the SegmentedClustersArray message
@@ -235,7 +211,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
     // Assign each point corresponding to this cluster in xyzCloudPtrPassthroughFiltered a specific color for identification purposes
     for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); ++pit)
     {
-      clusterPtr->points.push_back(xyzCloudPtrRansacFiltered->points[*pit]);
+      clusterPtr->points.push_back(xyzCloudPtrFiltered->points[*pit]);
 
     }
 

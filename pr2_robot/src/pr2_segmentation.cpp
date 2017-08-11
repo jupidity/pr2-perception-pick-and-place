@@ -45,28 +45,58 @@ public:
     m_passthrough2Pub = m_nh.advertise<sensor_msgs::PointCloud2> ("pr2_robot/pcl_passthrough2",1);
     #endif
 
+    // declare the containers for parameters
+    float vf_leaf_size;
+    float ec_cluster_tolerance;
+    int ec_minimum_cluster_size;
+    int ec_maximum_cluster_size;
+    float of_mean_k;
+    float of_std_dev;
+    float pz_lower_limit;
+    float pz_upper_limit;
+    double py_lower_limit;
+    float py_upper_limit;
+    float rs_distance_threshold;
+
+
+    // get the parameters from the parameter server
+    ros::param::get("/filters/voxel_filter/leaf_size", vf_leaf_size );
+    ros::param::get("/filters/euclidean_cluster/cluster_tolerance", ec_cluster_tolerance );
+    ros::param::get("/filters/euclidean_cluster/maximum_cluster_size", ec_maximum_cluster_size );
+    ros::param::get("/filters/euclidean_cluster/minimum_cluster_size", ec_minimum_cluster_size);
+    ros::param::get("/filters/outlier_filter/mean_k", of_mean_k );
+    ros::param::get("/filters/outlier_filter/std_dev", of_std_dev );
+    ros::param::get("/filters/passthrough_z/lower_limit", pz_lower_limit);
+    ros::param::get("/filters/passthrough_z/upper_limit", pz_upper_limit );
+    m_nh.param<double>("/filters/passthrough_y/lower_limit", py_lower_limit , py_lower_limit);
+    ros::param::get("/filters/passthrough_y/upper_limit", py_upper_limit );
+    ros::param::get("/filters/ransac_segmentation/distance_threshold", rs_distance_threshold );
+
 
     // set voxel filter parameters
-    voxelFilter.setLeafSize (0.01, 0.01, 0.01);
+    voxelFilter.setLeafSize (vf_leaf_size,vf_leaf_size,vf_leaf_size);
     // set passthrough filter parameters
     passY.setFilterFieldName ("y");
-    passY.setFilterLimits (-.5, .5);
+    ROS_INFO_STREAM("Lower Limit: "<<py_lower_limit);
+    ROS_INFO_STREAM("Upper Limit: "<<py_upper_limit);
+    passY.setFilterLimits (py_lower_limit, py_upper_limit);
     // set z passthrough filter parameters
     passZ.setFilterFieldName ("z");
-    passZ.setFilterLimits (.5, 1.1);
+
+    passZ.setFilterLimits (pz_lower_limit, pz_upper_limit);
     // set outlier filter parameters
-    outlierFilter.setMeanK (50);
-    outlierFilter.setStddevMulThresh (.0075);
+    outlierFilter.setMeanK (of_mean_k);
+    outlierFilter.setStddevMulThresh (of_std_dev);
     // set ransac filter parameters
     ransacSegmentation.setOptimizeCoefficients (true);
     ransacSegmentation.setModelType (pcl::SACMODEL_PLANE);
     ransacSegmentation.setMethodType (pcl::SAC_RANSAC);
-    ransacSegmentation.setDistanceThreshold (0.016);
+    ransacSegmentation.setDistanceThreshold (rs_distance_threshold);
     extract.setNegative (true);
     // specify euclidean cluster parameters
-    ec.setClusterTolerance (0.02); // 2cm
-    ec.setMinClusterSize (100);
-    ec.setMaxClusterSize (25000);
+    ec.setClusterTolerance (ec_cluster_tolerance); // 2cm
+    ec.setMinClusterSize (ec_minimum_cluster_size);
+    ec.setMaxClusterSize (ec_maximum_cluster_size);
 
 
   }
@@ -111,6 +141,7 @@ private:
 void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 {
 
+
   // get pointers to new pcl objects
   pcl::PCLPointCloud2* cloud = new pcl::PCLPointCloud2; // // pcl object to hold the conversion from sensor_msgs::PointCloud2 data type
   pcl::PCLPointCloud2* cloud_filtered = new pcl::PCLPointCloud2; // pcl object to hold the voxel filtered cloud
@@ -122,7 +153,6 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr xyzCloudPtr (xyz_cloud);
   pcl::PCLPointCloud2Ptr cloudFilteredPtr (cloud_filtered);
   pcl::PCLPointCloud2ConstPtr cloudPtr(cloud);
-
 
   // Convert to PCL data type
   pcl_conversions::toPCL(*cloud_msg, *cloud);

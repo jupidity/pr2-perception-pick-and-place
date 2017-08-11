@@ -6,6 +6,7 @@
 
   <rosparam command="load" file="$(find pr2_moveit)/config/grasp.yaml"/>
   <rosparam command="load" file="$(find pr2_robot)/config/dropbox.yaml"/>
+  <rosparam command="load" file="$(find pr2_robot)/config/filter_parameters.yaml"/>
 
   <!--Launch a gazebo world-->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">

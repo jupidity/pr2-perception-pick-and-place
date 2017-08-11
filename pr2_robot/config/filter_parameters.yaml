@@ -1,0 +1,23 @@
+filters:
+  voxel_filter:
+    leaf_size: .01
+
+  passthrough_y:
+    lower_limit: -0.5
+    upper_limit: 0.5
+
+  passthrough_z:
+    lower_limit: 0.5
+    upper_limit: 1.1
+
+  outlier_filter:
+    mean_k: 50
+    std_dev: 0.0075
+
+  ransac_segmentation:
+    distance_threshold: 0.016
+
+  euclidean_cluster:
+    cluster_tolerance: 0.02
+    minimum_cluster_size: 100
+    maximum_cluster_size: 25000

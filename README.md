@@ -1,4 +1,4 @@
-[![Udacity - Robotics NanoDegree Program](https://s3-us-west-1.amazonaws.com/udacity-robotics/Extra+Images/RoboND_flag.png)](https://www.udacity.com/robotics)
+
 # 3D Perception
 
 The PR2 has been outfitted with an RGB-D sensor that is a bit noisy, much like real sensors.

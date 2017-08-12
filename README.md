@@ -5,7 +5,7 @@
 [image4]: ./photos/passthroughZ.png
 [image5]: ./photos/noisyPointCloud.png
 [image6]: ./photos/ransacFilter.png
-[image7]: ./photos/clusters.png
+[image7]: ./photos/cluters.png
 [image8]: ./photos/clusterMarkers.png
 [image9]: ./photos/table_2.png
 [image10]: ./photos/table_3.png
@@ -18,7 +18,7 @@
 An RGBD perception pipeline for object recognition with the PR2 robot using ROS in Gazebo simulation.
 The complete perception pipeline can be broken into two sections, point cloud cluster segmentation and object recognition using SVM. There were three "worlds" with which to test the success of our build, the following is an overview of perception performance in the first world.
 
-After building the environment, the simulation can be lauched by running the following commands in the shell
+After building the environment, the simulation can be launched by running the following commands in the shell
 
 ```sh
 roslaunch pr2_robot pick_place_project.launch
@@ -60,19 +60,23 @@ in the z direction:
 
 ![alt text][image4]
 
-In order to remove noise, we pass the point cloud through a statistical outlier filter to remove points that are above a maximum standard deviation geographical distance away from neighboring points
+In order to remove noise, we pass the point cloud through a statistical outlier filter to remove points that are above a maximum standard deviation from neighboring points
 
 ![alt text][image11]
 
-Once the point cloud is clean and focused, we perform RANSAC plane filtration to remove the table
+Once the point cloud is cleaned and focused, we perform RANSAC plane filtration to remove the table
 
 ![alt text][image6]
 
-All thats left is the objects of interest. In order to separate each individual object cloud, we perform Euclidean Cluster Extraction to group points with their closest geographical cluster.
+All thats left is the objects of interest. In order to separate each individual object cloud, we perform Euclidean Cluster Extraction to group points with their closest cluster.
 
 ![alt text][image7]
 
-Now that each object of interest is separated into its own point cloud, each point cloud cluster is packaged in a PointCloud2 vector as an ROS message and sent to the python `marker_generation.py` node for classification against our SVM model. After classification, the centroid of the point cloud is computed and a label is sent to RViz containing the result of the classification.
+Now that each object of interest is separated into its own point cloud, each point cloud cluster is packaged in a PointCloud2 vector as an ROS message and sent to the python `marker_generation.py` node for classification against our SVM model.
+
+The SVM model in this example is trained with 256 bins for HSV color and normals, with 40 randomly generated orientations of each potential object of interest. A full description of how the SVM model was trained can be found in the repo https://github.com/jupidity/svm_model_generation.
+
+ After classification, the centroid of the point cloud is computed and a label is sent to RViz containing the result of the classification.
 
 ![alt text][image8]
 
@@ -86,4 +90,4 @@ world 3
 
 ![alt text][image10]
 
-The model performed relatively well, achieving perfect object classification in world 1 and 3, 80% correct classification is world 2, and able to be executed in real time.
+The model performed relatively well, achieving perfect object classification in world 1 and 3, 80% correct classification is world 2, and able to be executed in real time at about 3fps.

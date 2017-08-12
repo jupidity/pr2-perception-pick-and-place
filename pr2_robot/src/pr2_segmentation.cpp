@@ -43,6 +43,7 @@ public:
     m_passthroughPub = m_nh.advertise<sensor_msgs::PointCloud2> ("pr2_robot/pcl_passthrough",1);
     m_ransacPub = m_nh.advertise<sensor_msgs::PointCloud2> ("pr2_robot/pcl_ransac",1);
     m_passthrough2Pub = m_nh.advertise<sensor_msgs::PointCloud2> ("pr2_robot/pcl_passthrough2",1);
+    m_coloredClustersPub = m_nh.advertise<sensor_msgs::PointCloud2> ("pr2_robot/color_clusters",1);
     #endif
 
     // declare the containers for parameters
@@ -77,8 +78,8 @@ public:
     voxelFilter.setLeafSize (vf_leaf_size,vf_leaf_size,vf_leaf_size);
     // set passthrough filter parameters
     passY.setFilterFieldName ("y");
-    ROS_INFO_STREAM("Lower Limit: "<<py_lower_limit);
-    ROS_INFO_STREAM("Upper Limit: "<<py_upper_limit);
+    //ROS_INFO_STREAM("Lower Limit: "<<py_lower_limit);
+    //ROS_INFO_STREAM("Upper Limit: "<<py_upper_limit);
     passY.setFilterLimits (py_lower_limit, py_upper_limit);
     // set z passthrough filter parameters
     passZ.setFilterFieldName ("z");
@@ -109,6 +110,7 @@ private:
   ros::Publisher m_clusterPub;
 
 
+
   // Declare the filters
   pcl::VoxelGrid<pcl::PCLPointCloud2> voxelFilter; // voxel filter
   pcl::PassThrough<pcl::PointXYZRGB> passY; // passthrough filter in the y dir
@@ -129,6 +131,7 @@ private:
   ros::Publisher m_passthroughPub;
   ros::Publisher m_ransacPub;
   ros::Publisher m_passthrough2Pub;
+  ros::Publisher m_coloredClustersPub;
 
   #endif
 
@@ -221,13 +224,21 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   // exctract the indices pertaining to each cluster and store in a vector of pcl::PointIndices
 
   // Create the KdTree object for the search method of the extraction
+
   pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
   tree->setInputCloud (xyzCloudPtrFiltered);
+  ec.setSearchMethod(tree);
   ec.setInputCloud (xyzCloudPtrFiltered);
+  cluster_indices.clear();
   ec.extract (cluster_indices);
 
   // declare an instance of the SegmentedClustersArray message
   pr2_robot::SegmentedClustersArray CloudClusters;
+
+  #ifdef DEBUG
+  uint32_t j =0;
+  uint32_t color=0;
+  #endif
 
   // here, cluster_indices is a vector of indices for each cluster. iterate through each indices object to work with them separately
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
@@ -243,9 +254,16 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
     {
       clusterPtr->points.push_back(xyzCloudPtrFiltered->points[*pit]);
 
+      #ifdef DEBUG
+      xyzCloudPtrFiltered->points[*pit].rgb =  color ;
+      #endif
     }
 
 
+    #ifdef DEBUG
+    ++j;
+    color += 0x00000e << (j*3) ;
+    #endif
     // populate the output message
     pcl::toPCLPointCloud2( *clusterPtr ,outputPCL); // convert to pcl::PCLPointCloud2
     pcl_conversions::fromPCL(outputPCL, output); // Convert to ROS data type
@@ -253,6 +271,12 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
 
   }
 
+  #ifdef DEBUG // publish the point cloud to RViz if in debug
+  pcl::toPCLPointCloud2( *xyzCloudPtrFiltered ,outputPCL);
+  pcl_conversions::fromPCL(outputPCL, output);
+  m_coloredClustersPub.publish(output);
+  #endif
+  
   // publish the clusters
   m_clusterPub.publish(CloudClusters);
 

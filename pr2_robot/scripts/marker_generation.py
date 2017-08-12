@@ -18,6 +18,25 @@ from pr2_robot.msg import DetectedObject
 from pr2_robot.msg import SegmentedClustersArray
 from pr2_robot.pcl_helper import *
 
+def compute_centroid(cloud):
+
+    x_pos = 0.
+    y_pos = 0.
+    z_pos = 0.
+    i = 0
+
+    for point in cloud:
+        x_pos += point[0]
+        y_pos += point[1]
+        z_pos += point[2]
+        i = i+1
+
+    x_pos = x_pos / i
+    y_pos = y_pos / i
+    z_pos = z_pos / i
+
+    return list([x_pos,y_pos,z_pos])
+
 
 def get_normals(cloud):
     get_normals_prox = rospy.ServiceProxy('/pr2_feature_extractor/get_normals', GetNormals)
@@ -48,7 +67,7 @@ def pcl_callback(pcl_msg):
 
         # Publish a label into RViz
         pcl_pointCloud = ros_to_pcl(pcl_cloud)
-        label_pos = list(pcl_pointCloud[0])
+        label_pos = compute_centroid(pcl_pointCloud)
         label_pos[2] += .4
         object_markers_pub.publish(make_label(label,label_pos, index))
 

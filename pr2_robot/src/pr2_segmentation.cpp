@@ -25,7 +25,7 @@ Author: Sean Cassero
 #include <pr2_robot/SegmentedClustersArray.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 
-#define DEBUG
+//#define DEBUG
 
 class segmentation {
 
@@ -276,7 +276,7 @@ void segmentation::cloud_cb (const sensor_msgs::PointCloud2ConstPtr& cloud_msg)
   pcl_conversions::fromPCL(outputPCL, output);
   m_coloredClustersPub.publish(output);
   #endif
-  
+
   // publish the clusters
   m_clusterPub.publish(CloudClusters);
 

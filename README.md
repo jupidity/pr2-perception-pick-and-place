@@ -72,11 +72,19 @@ All thats left is the objects of interest. In order to separate each individual 
 
 ![alt text][image7]
 
-Now that each object of interest is separated into its own point cloud, each point cloud cluster is packaged in a PointCloud2 vector as an ROS message and sent to the python `marker_generation.py` node for classification against our SVM model.
+Now that each object of interest is separated into its own point cloud, each point cloud cluster is packaged in a PointCloud2 vector as an ROS message and sent to the python `marker_generation.py`.
+
+`marker_generation.py` is responsible for three tasks:
+
+- perform point cloud object classification against the SVM model.
+- generate labels in RViz for each recognized object.
+- generate a yaml output file with a server request for the pick and place operation.
 
 The SVM model in this example is trained with 256 bins for HSV color and normals, with 40 randomly generated orientations of each potential object of interest. A full description of how the SVM model was trained can be found in the repo https://github.com/jupidity/svm_model_generation.
 
- After classification, the centroid of the point cloud is computed and a label is sent to RViz containing the result of the classification.
+ Once classification is complete, a detected_object message is generated containing the label, label position, and corresponding point cloud index. There is one detected_object message per individual cloud cluster, and each detected_object message is appended to an array of detected_objects messages and passed to RViz.  
+
+
 
 ![alt text][image8]
 

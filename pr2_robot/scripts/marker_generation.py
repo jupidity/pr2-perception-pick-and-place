@@ -18,25 +18,26 @@ from pr2_robot.msg import DetectedObject
 from pr2_robot.msg import SegmentedClustersArray
 from pr2_robot.pcl_helper import *
 
-def compute_centroid(cloud):
+from std_msgs.msg import Int32
+from std_msgs.msg import String
+from geometry_msgs.msg import Pose
 
-    x_pos = 0.
-    y_pos = 0.
-    z_pos = 0.
-    i = 0
+from pr2_robot.srv import PickPlace
 
-    for point in cloud:
-        x_pos += point[0]
-        y_pos += point[1]
-        z_pos += point[2]
-        i = i+1
+def send_to_yaml(yaml_filename, dict_list):
+    data_dict = {"object_list": dict_list}
+    with open(yaml_filename, 'w') as outfile:
+        yaml.dump(data_dict, outfile, default_flow_style=False)
 
-    x_pos = x_pos / i
-    y_pos = y_pos / i
-    z_pos = z_pos / i
 
-    return list([x_pos,y_pos,z_pos])
-
+def make_yaml_dict(test_scene_num, arm_name, object_name, pick_pose, place_pose):
+    yaml_dict = {}
+    yaml_dict["test_scene_num"] = test_scene_num.data
+    yaml_dict["arm_name"]  = arm_name.data
+    yaml_dict["object_name"] = object_name.data
+    yaml_dict["pick_pose"] = message_converter.convert_ros_message_to_dictionary(pick_pose)
+    yaml_dict["place_pose"] = message_converter.convert_ros_message_to_dictionary(place_pose)
+    return yaml_dict
 
 def get_normals(cloud):
     get_normals_prox = rospy.ServiceProxy('/pr2_feature_extractor/get_normals', GetNormals)
@@ -51,6 +52,11 @@ def pcl_callback(pcl_msg):
     # declare holders for the labels and objects
     detected_objects_labels = []
     detected_objects = []
+    labels = []
+    centroids = [] # to be list of tuples (x, y, z)
+
+    # get parameters
+    object_list_param = rospy.get_param('/object_list')
 
 
     for index, pcl_cloud in enumerate(pcl_msg.clusters):
@@ -62,14 +68,15 @@ def pcl_callback(pcl_msg):
         feature = np.concatenate((chists, nhists))
 
         prediction = clf.predict(scaler.transform(feature.reshape(1,-1)))
+
         label = encoder.inverse_transform(prediction)[0]
         detected_objects_labels.append(label)
 
         # Publish a label into RViz
-        pcl_pointCloud = ros_to_pcl(pcl_cloud)
-        label_pos = compute_centroid(pcl_pointCloud)
-        label_pos[2] += .4
-        object_markers_pub.publish(make_label(label,label_pos, index))
+        points_array = ros_to_pcl(pcl_cloud).to_array()
+        centroids.append(np.mean(points_array, axis=0)[:3])
+        centroids[index][2] += .4
+        object_markers_pub.publish(make_label(label,centroids[index], index))
 
         # Add the detected object to the list of detected objects.
         do = DetectedObject()
@@ -77,12 +84,26 @@ def pcl_callback(pcl_msg):
         do.cloud = pcl_cloud
         detected_objects.append(do)
 
+        # TODO search through the list of pick place items and see if label matches any items
+
+        # if it does, gerate the yaml dictionary entry
+
+        # create the ROS msg types and populate them with the parameters
+
+        # create a Yaml dictionary entry and add the messages to it
+
+        # push the yaml dictionary entry to an array
+
+
+
     rospy.loginfo('Detected {} objects: {}'.format(len(detected_objects_labels), detected_objects_labels))
+
 
     # Publish the list of detected objects
     # This is the output you'll need to complete the upcoming project!
     detected_objects_pub.publish(detected_objects)
 
+    # TODO save the Yaml dictionary generated above to an output Yaml file
 
 if __name__ == '__main__':
 

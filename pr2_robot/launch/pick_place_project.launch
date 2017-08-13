@@ -6,6 +6,7 @@
 
   <rosparam command="load" file="$(find pr2_moveit)/config/grasp.yaml"/>
   <rosparam command="load" file="$(find pr2_robot)/config/dropbox.yaml"/>
+  <rosparam command="load" file="$(find pr2_robot)/config/pick_list_1.yaml"/>
 
 
   <!--Launch a gazebo world-->

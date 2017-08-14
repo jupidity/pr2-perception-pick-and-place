@@ -9,3 +9,4 @@ object_list:
     group: red
   - name: glue
     group: red
+test_world_num: 2

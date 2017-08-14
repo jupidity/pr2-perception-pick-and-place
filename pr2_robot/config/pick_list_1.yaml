@@ -5,3 +5,5 @@ object_list:
     group: green
   - name: soap2
     group: red
+test_world_num: 1
+  

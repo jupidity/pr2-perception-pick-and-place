@@ -15,3 +15,4 @@ object_list:
     group: green
   - name: glue
     group: red
+test_world_num: 3

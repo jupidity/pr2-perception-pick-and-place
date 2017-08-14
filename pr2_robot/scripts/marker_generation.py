@@ -5,7 +5,7 @@ import sklearn
 from sklearn.preprocessing import LabelEncoder
 
 import pickle
-
+import yaml 
 
 from pr2_robot.features import compute_color_histograms
 from pr2_robot.features import compute_normal_histograms
@@ -24,10 +24,13 @@ from geometry_msgs.msg import Pose
 
 from pr2_robot.srv import PickPlace
 
+from rospy_message_converter import message_converter
+
 def send_to_yaml(yaml_filename, dict_list):
     data_dict = {"object_list": dict_list}
     with open(yaml_filename, 'w') as outfile:
         yaml.dump(data_dict, outfile, default_flow_style=False)
+
 
 
 def make_yaml_dict(test_scene_num, arm_name, object_name, pick_pose, place_pose):
@@ -47,16 +50,19 @@ def get_normals(cloud):
 def pcl_callback(pcl_msg):
 
 
-    # TODO Classify the clusters!
+    # Classify the clusters!
 
     # declare holders for the labels and objects
     detected_objects_labels = []
     detected_objects = []
     labels = []
     centroids = [] # to be list of tuples (x, y, z)
+    dict_list = []
 
     # get parameters
     object_list_param = rospy.get_param('/object_list')
+    dropbox_data = rospy.get_param('/dropbox')
+    scene_num = rospy.get_param('/test_world_num')
 
 
     for index, pcl_cloud in enumerate(pcl_msg.clusters):
@@ -84,26 +90,63 @@ def pcl_callback(pcl_msg):
         do.cloud = pcl_cloud
         detected_objects.append(do)
 
-        # TODO search through the list of pick place items and see if label matches any items
 
-        # if it does, gerate the yaml dictionary entry
+        # search through the list of pick place items and see if label matches any items
+        for obj in object_list_param:
 
-        # create the ROS msg types and populate them with the parameters
+            if obj['name'] == label:
+                # if it does, gerate the yaml dictionary entry
 
-        # create a Yaml dictionary entry and add the messages to it
+                # create the ROS msg types
+                # test_scene_num, arm_name, object_name, pick_pose, place_pose
+                item_name = String()
+                place_pose = Pose()
+                pick_pose = Pose()
+                arm_name = String()
+                test_scene_num = Int32()
 
-        # push the yaml dictionary entry to an array
+
+                # populate the msgs with data
+                item_name.data = obj['name']
+                pick_pose.position.x = centroids[index][0]
+                pick_pose.position.y = centroids[index][1]
+                pick_pose.position.z = centroids[index][2]
+                test_scene_num.data = scene_num
+
+
+                if (obj['group'] == dropbox_data[0]['group']):
+                    arm_name.data = dropbox_data[0]['name']
+                    pick_pose.position.x = dropbox_data[0]['position'][0]
+                    pick_pose.position.y = dropbox_data[0]['position'][1]
+                    pick_pose.position.z = dropbox_data[0]['position'][2]
+                else:
+                    arm_name.data = dropbox_data[1]['name']
+                    pick_pose.position.x = dropbox_data[1]['position'][0]
+                    pick_pose.position.y = dropbox_data[1]['position'][1]
+                    pick_pose.position.z = dropbox_data[1]['position'][2]
+
+
+                #rospy.loginfo('{},{},{},{},{}'.format(test_scene_num, arm_name, item_name, pick_pose, place_pose))
+
+                # create a Yaml dictionary entry and add the messages to it
+                yaml_dict = make_yaml_dict(test_scene_num, arm_name, item_name, pick_pose.position, place_pose.position)
+                # push the yaml dictionary entry to an array
+                dict_list.append(yaml_dict)
 
 
 
+    # append the detected object message to the array
     rospy.loginfo('Detected {} objects: {}'.format(len(detected_objects_labels), detected_objects_labels))
-
 
     # Publish the list of detected objects
     # This is the output you'll need to complete the upcoming project!
     detected_objects_pub.publish(detected_objects)
 
-    # TODO save the Yaml dictionary generated above to an output Yaml file
+    # save the Yaml dictionary generated above to an output Yaml file
+    yaml_filename = "output_yaml"
+    send_to_yaml(yaml_filename, dict_list)
+
+
 
 if __name__ == '__main__':
 

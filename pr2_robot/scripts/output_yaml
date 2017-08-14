@@ -1,0 +1,34 @@
+object_list:
+- arm_name: right
+  object_name: biscuits
+  pick_pose:
+    x: 0
+    y: -0.71
+    z: 0.605
+  place_pose:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  test_scene_num: 1
+- arm_name: right
+  object_name: soap
+  pick_pose:
+    x: 0
+    y: -0.71
+    z: 0.605
+  place_pose:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  test_scene_num: 1
+- arm_name: left
+  object_name: soap2
+  pick_pose:
+    x: 0
+    y: 0.71
+    z: 0.605
+  place_pose:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  test_scene_num: 1

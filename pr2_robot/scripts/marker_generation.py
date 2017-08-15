@@ -147,7 +147,7 @@ def pcl_callback(pcl_msg):
     detected_objects_pub.publish(detected_objects)
 
     # save the Yaml dictionary generated above to an output Yaml file
-    yaml_filename = "output_yaml"
+    yaml_filename = "output_yaml_scene" + "%s"%(scene_num) + ".yaml"
     if len(dict_list) > 0:
         #rospy.loginfo('{}'.format(dict_list))
         send_to_yaml(yaml_filename, dict_list)

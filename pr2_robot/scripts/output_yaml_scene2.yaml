@@ -8,9 +8,9 @@ object_list:
       y: 0.0
       z: 0.0
     position:
-      x: 0.541806161403656
-      y: -0.2415418028831482
-      z: 0.7095014810562134
+      x: 0.5707117319107056
+      y: -0.2494385838508606
+      z: 0.7088192462921142
   place_pose:
     orientation:
       w: 0.0
@@ -21,32 +21,9 @@ object_list:
       x: 0
       y: -0.71
       z: 0.605
-  test_scene_num: 1
-- arm_name: right
-  object_name: soap
-  pick_pose:
-    orientation:
-      w: 0.0
-      x: 0.0
-      y: 0.0
-      z: 0.0
-    position:
-      x: 0.538240909576416
-      y: -0.018981577828526497
-      z: 0.6773202180862427
-  place_pose:
-    orientation:
-      w: 0.0
-      x: 0.0
-      y: 0.0
-      z: 0.0
-    position:
-      x: 0
-      y: -0.71
-      z: 0.605
-  test_scene_num: 1
+  test_scene_num: 2
 - arm_name: left
-  object_name: soap2
+  object_name: book
   pick_pose:
     orientation:
       w: 0.0
@@ -54,9 +31,9 @@ object_list:
       y: 0.0
       z: 0.0
     position:
-      x: 0.4446174204349518
-      y: 0.22298592329025269
-      z: 0.6788695812225342
+      x: 0.582199215888977
+      y: 0.2770243287086487
+      z: 0.7249103546142578
   place_pose:
     orientation:
       w: 0.0
@@ -67,4 +44,50 @@ object_list:
       x: 0
       y: 0.71
       z: 0.605
-  test_scene_num: 1
+  test_scene_num: 2
+- arm_name: right
+  object_name: soap
+  pick_pose:
+    orientation:
+      w: 0.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.5563350319862366
+      y: 0.004181793890893459
+      z: 0.6772711038589477
+  place_pose:
+    orientation:
+      w: 0.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0
+      y: -0.71
+      z: 0.605
+  test_scene_num: 2
+- arm_name: left
+  object_name: soap2
+  pick_pose:
+    orientation:
+      w: 0.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0.4443123936653137
+      y: 0.22667454183101654
+      z: 0.6790506601333618
+  place_pose:
+    orientation:
+      w: 0.0
+      x: 0.0
+      y: 0.0
+      z: 0.0
+    position:
+      x: 0
+      y: 0.71
+      z: 0.605
+  test_scene_num: 2

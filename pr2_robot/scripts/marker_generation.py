@@ -5,7 +5,7 @@ import sklearn
 from sklearn.preprocessing import LabelEncoder
 
 import pickle
-import yaml 
+import yaml
 
 from pr2_robot.features import compute_color_histograms
 from pr2_robot.features import compute_normal_histograms
@@ -92,6 +92,7 @@ def pcl_callback(pcl_msg):
 
 
         # search through the list of pick place items and see if label matches any items
+
         for obj in object_list_param:
 
             if obj['name'] == label:
@@ -105,33 +106,36 @@ def pcl_callback(pcl_msg):
                 arm_name = String()
                 test_scene_num = Int32()
 
-
                 # populate the msgs with data
                 item_name.data = obj['name']
-                pick_pose.position.x = centroids[index][0]
-                pick_pose.position.y = centroids[index][1]
-                pick_pose.position.z = centroids[index][2]
+                pick_pose.position.x = np.asscalar(centroids[index][0])
+                pick_pose.position.y = np.asscalar(centroids[index][1])
+                pick_pose.position.z = np.asscalar(centroids[index][2]-.4)
                 test_scene_num.data = scene_num
-
+                arm_name.data = dropbox_data[0]['name']
 
                 if (obj['group'] == dropbox_data[0]['group']):
                     arm_name.data = dropbox_data[0]['name']
-                    pick_pose.position.x = dropbox_data[0]['position'][0]
-                    pick_pose.position.y = dropbox_data[0]['position'][1]
-                    pick_pose.position.z = dropbox_data[0]['position'][2]
+                    #rospy.loginfo("{}".format(dropbox_data[0]['position'][0]))
+                    place_pose.position.x = dropbox_data[0]['position'][0]
+                    place_pose.position.y = dropbox_data[0]['position'][1]
+                    place_pose.position.z = dropbox_data[0]['position'][2]
                 else:
+                    #rospy.loginfo("{}".format(dropbox_data[0]['position'][0]))
                     arm_name.data = dropbox_data[1]['name']
-                    pick_pose.position.x = dropbox_data[1]['position'][0]
-                    pick_pose.position.y = dropbox_data[1]['position'][1]
-                    pick_pose.position.z = dropbox_data[1]['position'][2]
+                    place_pose.position.x = dropbox_data[1]['position'][0]
+                    place_pose.position.y = dropbox_data[1]['position'][1]
+                    place_pose.position.z = dropbox_data[1]['position'][2]
 
 
                 #rospy.loginfo('{},{},{},{},{}'.format(test_scene_num, arm_name, item_name, pick_pose, place_pose))
 
                 # create a Yaml dictionary entry and add the messages to it
-                yaml_dict = make_yaml_dict(test_scene_num, arm_name, item_name, pick_pose.position, place_pose.position)
+                yaml_dict = make_yaml_dict(test_scene_num, arm_name, item_name,  pick_pose, place_pose,)
+                #rospy.loginfo('{}'.format(yaml_dict))
                 # push the yaml dictionary entry to an array
                 dict_list.append(yaml_dict)
+
 
 
 
@@ -144,7 +148,9 @@ def pcl_callback(pcl_msg):
 
     # save the Yaml dictionary generated above to an output Yaml file
     yaml_filename = "output_yaml"
-    send_to_yaml(yaml_filename, dict_list)
+    if len(dict_list) > 0:
+        #rospy.loginfo('{}'.format(dict_list))
+        send_to_yaml(yaml_filename, dict_list)
 
 
 

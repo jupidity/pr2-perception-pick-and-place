@@ -105,11 +105,8 @@ public:
 private:
 
   ros::NodeHandle m_nh;
-  ros::Publisher m_pub;
   ros::Subscriber m_sub;
   ros::Publisher m_clusterPub;
-
-
 
   // Declare the filters
   pcl::VoxelGrid<pcl::PCLPointCloud2> voxelFilter; // voxel filter

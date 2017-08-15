@@ -16,9 +16,12 @@
 ---
 
 An RGBD perception pipeline for object recognition with the PR2 robot using ROS in Gazebo simulation.
-The complete perception pipeline can be broken into two sections, point cloud cluster segmentation and object recognition using SVM. There were three "worlds" with which to test the success of our build, the following is an overview of perception performance in the first world.
 
-After building the environment, the simulation can be launched by running the following commands in the shell
+In order to use the pcl library for point cloud processing in c++ and the sklearn Python library for object recognition, the perception pipeline was broken into two nodes: `pr2_segmentation`, a c++ node for point cloud cluster segmentation, and `marker_generation.py` a Python node for object recognition using SVM.
+
+There were three "worlds" with which to test the success of our build, the following is an overview of perception performance in the first world.
+
+After building the environment, the simulation can be launched by running the following commands in the shell in the root directory of your project
 
 ```sh
 roslaunch pr2_robot pick_place_project.launch
@@ -30,12 +33,23 @@ and in a separate terminal
 roslaunch pr2_robot pick_place_perception.launch
 ```
 
+and finally in a third terminal
+
+```sh
+cd pr2_robot/scripts/
+./marker_generation.py
+```
+
 ## Point Cloud Segmentation
 ---
 
+The `pr2_segmentation` nodes' basic functionality is to accept a `sensor_msgs::PointCloud2` input from the `pr2/world/points` topic and segment separate objects to pass to `marker_generation.py` for identification.
+
+
+
 In order to visualize the point cloud processing, we can define DEBUG in the `/src/pr2_segmentation.cpp` script. The point cloud after each filtration can be seen in RViz.
 
-The worrld 1 scene is simulated as three objects in close proximity on a table
+The world 1 scene is simulated as three objects in close proximity on a table
 
 ![alt text][image1]
 

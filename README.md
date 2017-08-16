@@ -84,19 +84,6 @@ In the class constructor, the publisher to `marker_generation.py` via the `pr2_r
 
 and PCL filters are declared and populated with parameters from the `/filters/` parameter in the parameter server
 
-      // declare the containers for parameters
-      float vf_leaf_size;
-      float ec_cluster_tolerance;
-      int ec_minimum_cluster_size;
-      int ec_maximum_cluster_size;
-      float of_mean_k;
-      float of_std_dev;
-      float pz_lower_limit;
-      float pz_upper_limit;
-      double py_lower_limit;
-      float py_upper_limit;
-      float rs_distance_threshold;
-
 
       // get the parameters from the parameter server
       ros::param::get("/filters/voxel_filter/leaf_size", vf_leaf_size );
@@ -286,13 +273,47 @@ And the `pr2_segmentation` callback is completed.
 - generate labels in RViz for each recognized object.
 - generate a yaml output file with a server request for the pick and place operation.
 
-The SVM model in this example is trained with 256 bins for HSV color and normals, with 40 randomly generated orientations of each potential object of interest. A full description of how the SVM model was trained can be found in the repo https://github.com/jupidity/svm_model_generation.
+Once the `marker_generation.py` script receives the vector of point cloud clusters from the `pr2_segmentation` node, it begins by classifying each cluster. The SVM model in this example is trained with 256 bins for HSV color and normals, with 40 randomly generated orientations of each potential object of interest. A full description of how the SVM model was trained can be found in the repo https://github.com/jupidity/svm_model_generation.
 
- Once classification is complete, a detected_object message is generated containing the label, label position, and corresponding point cloud index. There is one detected_object message per individual cloud cluster, and each detected_object message is appended to an array of detected_objects messages and passed to RViz.  
+Each point in the cluster is passed into an array of 3 color channels
+
+        for point in pc2.read_points(cloud, skip_nans=True):
+            rgb_list = float_to_rgb(point[3])
+            point_colors_list.append(rgb_to_hsv(rgb_list) * 255)
+
+      for color in point_colors_list:
+            channel_1_vals.append(color[0])
+            channel_2_vals.append(color[1])
+            channel_3_vals.append(color[2])
+
+histograms of the proper bin number are computed
+
+        # Compute histograms for the colors in the point cloud
+        channel1_hist = np.histogram(channel_1_vals, bins=numBins, range=(0, 256))
+        channel2_hist = np.histogram(channel_2_vals, bins=numBins, range=(0, 256))
+        channel3_hist = np.histogram(channel_3_vals, bins=numBins, range=(0, 256))
+
+and concatenated into normalized feature vectors
+
+      hist_features = np.concatenate((channel1_hist[0],channel2_hist[0], channel3_hist[0])).astype(np.float64)
+        normed_features = hist_features / np.sum(hist_features)       
+
+to be passed into the svm modle for classification
+
+      prediction = clf.predict(scaler.transform(feature.reshape(1,-1)))
 
 
+ Once classification is complete, a detected_object message is generated containing the label, label position, and corresponding point cloud index and passed to RViz.  
+
+    object_markers_pub.publish(make_label(label,centroids[index], index))
+
+resulting in the following classification
 
 ![alt text][image8]
+
+and finally, the results of the classification for each cluster, its centroid position, and information for the pick and place operation are saved as a yaml output script
+and passed as a detected object message to the `/detected_objects` topic.
+
 
 The process can be repeated for worlds 2 and 3
 
@@ -303,6 +324,9 @@ world 2
 world 3
 
 ![alt text][image10]
+
+
+
 
 
 ### Performance and Improvements

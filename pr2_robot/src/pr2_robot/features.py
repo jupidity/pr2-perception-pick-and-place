@@ -57,15 +57,14 @@ def compute_normal_histograms(normal_cloud):
     for norm_component in pc2.read_points(normal_cloud,
                                           field_names = ('normal_x', 'normal_y', 'normal_z'),
                                           skip_nans=True):
-        norm_x_vals.append(norm_component[0])
-        norm_y_vals.append(norm_component[1])
-        norm_z_vals.append(norm_component[2])
+        norm_x_vals.append((norm_component[0]+1) * 128)
+        norm_y_vals.append((norm_component[1]+1) * 128)
+        norm_z_vals.append((norm_component[2]+1) * 128)
 
     # Compute histograms for the normals in the point cloud
     norm1_hist = np.histogram(norm_x_vals, bins=numBins, range=(0, 256))
     norm2_hist = np.histogram(norm_y_vals, bins=numBins, range=(0, 256))
     norm3_hist = np.histogram(norm_z_vals, bins=numBins, range=(0, 256))
-
 
     # Concatenate and normalize the histograms
     norm_hist_features = np.concatenate((norm1_hist[0],norm2_hist[0], norm3_hist[0])).astype(np.float64)

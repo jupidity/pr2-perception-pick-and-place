@@ -26,21 +26,7 @@ from pr2_robot.srv import PickPlace
 
 from rospy_message_converter import message_converter
 
-def send_to_yaml(yaml_filename, dict_list):
-    data_dict = {"object_list": dict_list}
-    with open(yaml_filename, 'w') as outfile:
-        yaml.dump(data_dict, outfile, default_flow_style=False)
 
-
-
-def make_yaml_dict(test_scene_num, arm_name, object_name, pick_pose, place_pose):
-    yaml_dict = {}
-    yaml_dict["test_scene_num"] = test_scene_num.data
-    yaml_dict["arm_name"]  = arm_name.data
-    yaml_dict["object_name"] = object_name.data
-    yaml_dict["pick_pose"] = message_converter.convert_ros_message_to_dictionary(pick_pose)
-    yaml_dict["place_pose"] = message_converter.convert_ros_message_to_dictionary(place_pose)
-    return yaml_dict
 
 def get_normals(cloud):
     get_normals_prox = rospy.ServiceProxy('/pr2_feature_extractor/get_normals', GetNormals)
@@ -53,8 +39,6 @@ def pcl_callback(pcl_msg):
     # Classify the clusters!
 
     # declare holders for the labels and objects
-    detected_objects_labels = []
-    detected_objects = []
     labels = []
     centroids = [] # to be list of tuples (x, y, z)
     dict_list = []
@@ -83,12 +67,6 @@ def pcl_callback(pcl_msg):
         centroids.append(np.mean(points_array, axis=0)[:3])
         centroids[index][2] += .4
         object_markers_pub.publish(make_label(label,centroids[index], index))
-
-        # Add the detected object to the list of detected objects.
-        do = DetectedObject()
-        do.label = label
-        do.cloud = pcl_cloud
-        detected_objects.append(do)
 
 
         # search through the list of pick place items and see if label matches any items
@@ -147,7 +125,7 @@ def pcl_callback(pcl_msg):
     detected_objects_pub.publish(detected_objects)
 
     # save the Yaml dictionary generated above to an output Yaml file
-    yaml_filename = "output_" + "%s"%(scene_num) + ".yaml"
+    yaml_filename = "output_yaml_scene" + "%s"%(scene_num) + ".yaml"
     if len(dict_list) > 0:
         #rospy.loginfo('{}'.format(dict_list))
         send_to_yaml(yaml_filename, dict_list)

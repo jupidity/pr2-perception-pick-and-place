@@ -1,6 +1,6 @@
 filters:
   voxel_filter:
-    leaf_size: .01
+    leaf_size: .005
 
   passthrough_y:
     lower_limit: -0.5
@@ -18,6 +18,6 @@ filters:
     distance_threshold: 0.018
 
   euclidean_cluster:
-    cluster_tolerance: .06
-    minimum_cluster_size: 100
+    cluster_tolerance: .04
+    minimum_cluster_size: 50
     maximum_cluster_size: 25000

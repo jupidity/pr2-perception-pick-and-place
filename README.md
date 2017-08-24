@@ -8,7 +8,7 @@
 [image7]: ./photos/cluters.png
 [image8]: ./photos/clusterMarkers.png
 [image9]: ./photos/table_2.png
-[image10]: ./photos/table_3.png
+[image10]: ./photos/table_1.png
 [image11]: ./photos/outlierFilter.png
 
 
@@ -19,7 +19,7 @@ An RGBD perception pipeline for object recognition with the PR2 robot using ROS 
 
 In order to use the pcl library for point cloud processing in c++, and the sklearn Python library for object recognition, the perception pipeline was broken into two nodes: `pr2_segmentation`, a c++ node for point cloud cluster segmentation, and `marker_generation.py` a Python node for object recognition using SVM.
 
-There were three "worlds" with which to test the success of our build, the following is an overview of perception performance in the first world.
+There were three "worlds" with which to test the success of our build, the following is an overview of perception performance in the third world.
 
 After building the environment, the simulation can be launched by running the following commands in the shell in the root directory of your project
 
@@ -116,7 +116,7 @@ and passes the cloud through a series of filters.
 
 In order to visualize the point cloud processing, uncomment `#define DEBUG` in the `/src/pr2_segmentation.cpp` script and recompile with `catkin_make`. The point cloud after each filtration can be seen in RViz. Normal node functionality does not generate these output clouds.
 
-The world 1 scene is simulated as three objects in close proximity on a table
+The world 3 scene is simulated as eight objects in close proximity on a table
 
 ![alt text][image1]
 
@@ -298,7 +298,7 @@ And the `pr2_segmentation` callback is completed.
 - generate labels in RViz for each recognized object.
 - generate a yaml output file with a server request for the pick and place operation.
 
-Once the `marker_generation.py` script receives the vector of point cloud clusters from the `pr2_segmentation` node, it begins by classifying each cluster. The SVM model in this example is trained with 256 bins for HSV color and normals, with 40 randomly generated orientations of each potential object of interest. A full description of how the SVM model was trained can be found in the repo https://github.com/jupidity/svm_model_generation.
+Once the `marker_generation.py` script receives the vector of point cloud clusters from the `pr2_segmentation` node, it begins by classifying each cluster. The SVM model in this example is trained with 256 bins for HSV color in the range [0,256] and 64 bins for normals in the range [-1,1], with 100 randomly generated orientations of each potential object of interest. A full description of how the SVM model was trained can be found in the repo https://github.com/jupidity/svm_model_generation.
 
 Each point in the cluster is passed into an array of 3 color channels
 
@@ -382,18 +382,18 @@ The yaml output files are located in the ``/scripts`` directory
 
 
 
-The process can be repeated for worlds 2 and 3
+The process can be repeated for worlds 2 and 1
 
 world 2:
 
-80% (4/5) correct object identification. Here the glue is incorrectly identified as beer.
+100% (5/5) correct object identification.
 
 
 ![alt text][image9]
 
-world 3
+world 1
 
-87.5% (7/8) correct object identification. All objects are labeled correctly, but the clustering algorithm is unable to identify the glue as an independent cluster, and only 7 objects are recognized.
+100% (3/3) correct object identification
 
 ![alt text][image10]
 
@@ -403,12 +403,14 @@ world 3
 
 ### Performance and Improvements
 ---
-The model performed relatively well, achieving perfect object classification in world 1, 80% correct classification is world 2, 87.5% classification in world 3, and able to be executed in real time at about 3fps.
+The model performed very well, achieving perfect object classification in all three test worlds.
 
 In the `pr2_segmentation` callback, code flow could have been sped up by defining each filter as a nodelet and passing smart pointers between filters, so each filter could work independently without passing the entire data structure between nodes. Performance would then be dictated by the execution time of the slowest filter rather than the sum of all filters execution time.
 
 Also, there could be performance improvements examining the optimal tradeoff between voxel filter leaf_size and object recognition accuracy, the value chosen worked but was not necessarily optimal.
 
-In terms of SVM model training, accuracy could have been improved in a number of ways. I was satisfied with performance (~93% accuracy) after 40 iterations of each object, but I imagine better and more consistent performance could have been achieved with more samples per object.
+In terms of SVM model training, accuracy could have been improved in a number of ways. I was satisfied with performance (~95% accuracy) after 100 iterations of each object, but I imagine better and more consistent performance could have been achieved with more samples per object.
+
+Also, there was a very clear trade-off between voxel grid leaf size, and classification speed and accuracy. Lower leaf sizes resulted in faster performance but a higher probability of misclassification, and would sometimes invalidate small or occluded objects as unique cluster classifications since the voxel number could drop below the minimum cluster tolerance for the euclidean extraction filter. The optimal parameter selection for performance accuracy vs speed is dependent on the limitations and requirements of the application, and parameters were selected for maximal accuracy in this application to showcase classification performance.
 
 Also after discussing with some other members of the cohort, the data from the normals appeared to be noisy and inconsistent at low sample numbers. Apparently classification accuracy was highly dependent on color histograms with people able to achieve close to 100% object classification more or less ignoring normals in their SVM. I was able to achieve 90% classification accuracy without normals, and 92% accuracy with normals for 40 samples per object in training. This is probably due to the consistent lighting in simulation leading to consistent object coloration across runs, but investigation on how to better include noise resistant geometric data for feature vectors will be useful in future applications of SVM. As a first pass, perhaps increasing the `setRadiusSearch(0.03);` parameter in the `feature-extractor.cpp` node could lead to more consistent planes for normal estimation, or decreasing the voxel filter `leaf_size` on the input cloud. Also investigation into HOG features might be a better way to do geometric classification for SVM training.    

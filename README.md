@@ -19,7 +19,38 @@ An RGBD perception pipeline for object recognition with the PR2 robot using ROS 
 
 In order to use the pcl library for point cloud processing in c++, and the sklearn Python library for object recognition, the perception pipeline was broken into two nodes: `pr2_segmentation`, a c++ node for point cloud cluster segmentation, and `marker_generation.py` a Python node for object recognition using SVM.
 
-There were three "worlds" with which to test the success of our build, the following is an overview of perception performance in the third world.
+
+## Results
+---
+
+There were three "worlds" with which to test the success of our build.
+
+
+world 1
+
+100% (3/3) correct object identification.
+
+![alt text][image10]
+
+
+world 2:
+
+100% (5/5) correct object identification.
+
+
+![alt text][image9]
+
+world 3:
+
+100% (8/8) correct object identification.
+
+![alt text][image8]
+
+
+## Code Breakdown
+---
+
+The following is an overview of perception performance in the third world.
 
 After building the environment, the simulation can be launched by running the following commands in the shell in the root directory of your project
 
@@ -30,6 +61,7 @@ cd pr2_robot/scripts/
 ```
 
 which roslaunches the pick_place_project.launch and pick_place_perception.launch scripts, and rosruns marker_generation.py
+
 
 
 ## Point Cloud Segmentation

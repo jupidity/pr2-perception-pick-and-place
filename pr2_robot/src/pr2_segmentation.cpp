@@ -25,7 +25,7 @@ Author: Sean Cassero
 #include <pr2_robot/SegmentedClustersArray.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 
-//#define DEBUG
+#define DEBUG
 
 class segmentation {
 

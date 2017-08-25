@@ -414,22 +414,7 @@ The yaml output files are located in the ``/scripts`` directory
 
 
 
-The process can be repeated for worlds 2 and 1
-
-world 2:
-
-100% (5/5) correct object identification.
-
-
-![alt text][image9]
-
-world 1
-
-100% (3/3) correct object identification
-
-![alt text][image10]
-
-
+The process can be repeated for worlds 2 and 1.
 
 
 
